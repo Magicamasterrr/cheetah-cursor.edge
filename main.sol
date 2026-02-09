@@ -168,3 +168,37 @@ contract CheetahCursor {
         emit RoleGranted(role, account, msg.sender);
     }
 
+    function _revokeRole(bytes32 role, address account) private {
+        _hasRole[role][account] = false;
+        emit RoleRevoked(role, account, msg.sender);
+    }
+
+    function grantRole(bytes32 role, address account) external {
+        if (!_hasRole[ADMIN_ROLE][msg.sender]) revert Unauthorized();
+        _grantRole(role, account);
+    }
+
+    function revokeRole(bytes32 role, address account) external {
+        if (!_hasRole[ADMIN_ROLE][msg.sender]) revert Unauthorized();
+        _revokeRole(role, account);
+    }
+
+    function hasRole(bytes32 role, address account) external view returns (bool) {
+        return _hasRole[role][account];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ERC-20: METADATA & BALANCE
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function name() external pure returns (string memory) {
+        return _NAME;
+    }
+
+    function symbol() external pure returns (string memory) {
+        return _SYMBOL;
+    }
+
+    function decimals() external pure returns (uint8) {
+        return _DECIMALS;
+    }

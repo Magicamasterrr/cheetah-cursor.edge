@@ -134,3 +134,37 @@ contract CheetahCursor {
         string description;
         uint256 forVotes;
         uint256 againstVotes;
+        uint256 startTime;
+        uint256 endTime;
+        bool executed;
+    }
+    mapping(uint256 => Proposal) public proposals;
+    mapping(uint256 => mapping(address => bool)) public hasVoted;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CONSTRUCTOR
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    constructor(uint256 _maxSupply) {
+        if (_maxSupply == 0) revert ZeroAmount();
+        maxSupply = _maxSupply;
+        genesisBlock = block.number;
+        genesisTimestamp = block.timestamp;
+        _grantRole(ADMIN_ROLE, msg.sender);
+        _grantRole(MINTER_ROLE, msg.sender);
+        _grantRole(TREASURY_ROLE, msg.sender);
+        _grantRole(REWARD_MANAGER_ROLE, msg.sender);
+        lastRewardUpdateTimestamp = block.timestamp;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ROLE HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function _grantRole(bytes32 role, address account) private {
+        if (account == address(0)) revert ZeroAddress();
+        _hasRole[role][account] = true;
+        if (role == ADMIN_ROLE) _admins.push(account);
+        emit RoleGranted(role, account, msg.sender);
+    }
+

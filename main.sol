@@ -66,3 +66,37 @@ contract CheetahCursor {
 
     // ═══════════════════════════════════════════════════════════════════════════
     // STATE: TOKEN
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    mapping(address => uint256) private _balances;
+    mapping(address => mapping(address => uint256)) private _allowances;
+    uint256 private _totalSupply;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATE: ROLES
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    mapping(bytes32 => mapping(address => bool)) private _hasRole;
+    address[] private _admins;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATE: STAKING (Cheetah speed = stake for rewards)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    uint256 public stakingLockDuration = 7 days;
+    uint256 public rewardRatePerTokenPerSecond = 1e12; // scaled
+    uint256 public lastRewardUpdateTimestamp;
+    uint256 public rewardPerTokenStored;
+    uint256 public totalStaked;
+
+    struct StakeInfo {
+        uint256 amount;
+        uint256 lockedUntil;
+        uint256 rewardPerTokenPaid;
+        uint256 rewardsAccrued;
+    }
+    mapping(address => StakeInfo) public stakes;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATE: CURSOR POSITIONS (Cursor software theme)
+    // ═══════════════════════════════════════════════════════════════════════════

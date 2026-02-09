@@ -100,3 +100,37 @@ contract CheetahCursor {
     // ═══════════════════════════════════════════════════════════════════════════
     // STATE: CURSOR POSITIONS (Cursor software theme)
     // ═══════════════════════════════════════════════════════════════════════════
+
+    struct CursorPosition {
+        uint256 x;
+        uint256 y;
+        uint256 timestamp;
+    }
+    mapping(address => CursorPosition) public cursorPositions;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATE: VELOCITY (Cheetah = fast)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    mapping(address => uint256[]) private _velocityHistory;
+    uint256 public constant MAX_VELOCITY_HISTORY = 100;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATE: TREASURY
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    uint256 public treasuryBalance;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATE: GOVERNANCE (proposals)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    uint256 public proposalCount;
+    uint256 public votingPeriod = 3 days;
+    uint256 public proposalThreshold = 1000 * 1e18;
+
+    struct Proposal {
+        address proposer;
+        string description;
+        uint256 forVotes;
+        uint256 againstVotes;

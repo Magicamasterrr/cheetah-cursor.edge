@@ -202,3 +202,37 @@ contract CheetahCursor {
     function decimals() external pure returns (uint8) {
         return _DECIMALS;
     }
+
+    function totalSupply() external view returns (uint256) {
+        return _totalSupply;
+    }
+
+    function balanceOf(address account) external view returns (uint256) {
+        return _balances[account];
+    }
+
+    function allowance(address owner, address spender) external view returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ERC-20: TRANSFER & APPROVE
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        _transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        if (spender == address(0)) revert ZeroAddress();
+        _allowances[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        uint256 currentAllowance = _allowances[from][msg.sender];
+        if (currentAllowance < amount) revert InsufficientAllowance();
+        unchecked {
+            _allowances[from][msg.sender] = currentAllowance - amount;

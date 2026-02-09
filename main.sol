@@ -32,3 +32,37 @@ contract CheetahCursor {
     error ZeroAddress();
     error ZeroAmount();
     error InsufficientBalance();
+    error InsufficientAllowance();
+    error StakingLocked();
+    error NoStake();
+    error NoRewards();
+    error ProposalNotFound();
+    error ProposalExpired();
+    error AlreadyVoted();
+    error ProposalNotPassed();
+    error MaxSupplyExceeded();
+    error InvalidVelocity();
+    error InvalidPosition();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ROLES (Cursor-style access)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    bytes32 public constant ADMIN_ROLE = keccak256("CHEETAH_CURSOR_ADMIN");
+    bytes32 public constant MINTER_ROLE = keccak256("CHEETAH_CURSOR_MINTER");
+    bytes32 public constant TREASURY_ROLE = keccak256("CHEETAH_CURSOR_TREASURY");
+    bytes32 public constant REWARD_MANAGER_ROLE = keccak256("CHEETAH_CURSOR_REWARD_MANAGER");
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TOKEN METADATA
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    string private constant _NAME = "Cheetah Cursor";
+    string private constant _SYMBOL = "CHC";
+    uint8 private constant _DECIMALS = 18;
+    uint256 public immutable maxSupply;
+    uint256 public immutable genesisBlock;
+    uint256 public immutable genesisTimestamp;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STATE: TOKEN

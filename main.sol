@@ -304,3 +304,37 @@ contract CheetahCursor {
             s.rewardPerTokenPaid = rewardPerTokenStored;
         }
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // STAKING: STAKE / UNSTAKE / CLAIM
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function stake(uint256 amount) external {
+        if (amount == 0) revert ZeroAmount();
+        _updateReward(msg.sender);
+        uint256 balance = _balances[msg.sender];
+        if (balance < amount) revert InsufficientBalance();
+        _transfer(msg.sender, address(this), amount);
+        StakeInfo storage s = stakes[msg.sender];
+        s.amount += amount;
+        s.lockedUntil = block.timestamp + stakingLockDuration;
+        totalStaked += amount;
+        emit Staked(msg.sender, amount, s.lockedUntil);
+    }
+
+    function unstake(uint256 amount) external {
+        StakeInfo storage s = stakes[msg.sender];
+        if (s.amount == 0) revert NoStake();
+        if (amount == 0) revert ZeroAmount();
+        if (amount > s.amount) revert InsufficientBalance();
+        if (block.timestamp < s.lockedUntil) revert StakingLocked();
+        _updateReward(msg.sender);
+        s.amount -= amount;
+        totalStaked -= amount;
+        _transfer(address(this), msg.sender, amount);
+        emit Unstaked(msg.sender, amount);
+    }
+
+    function claimRewards() external {
+        _updateReward(msg.sender);
+        StakeInfo storage s = stakes[msg.sender];

@@ -338,3 +338,37 @@ contract CheetahCursor {
     function claimRewards() external {
         _updateReward(msg.sender);
         StakeInfo storage s = stakes[msg.sender];
+        uint256 reward = s.rewardsAccrued;
+        if (reward == 0) revert NoRewards();
+        s.rewardsAccrued = 0;
+        _mintReward(msg.sender, reward);
+        emit RewardClaimed(msg.sender, reward);
+    }
+
+    function _mintReward(address to, uint256 amount) private {
+        if (_totalSupply + amount > maxSupply) return; // cap at maxSupply
+        _totalSupply += amount;
+        _balances[to] += amount;
+        emit Transfer(address(0), to, amount);
+    }
+
+    function setRewardRate(uint256 newRate) external {
+        if (!_hasRole[REWARD_MANAGER_ROLE][msg.sender]) revert Unauthorized();
+        _updateReward(address(0));
+        rewardRatePerTokenPerSecond = newRate;
+    }
+
+    function setStakingLockDuration(uint256 newDuration) external {
+        if (!_hasRole[ADMIN_ROLE][msg.sender]) revert Unauthorized();
+        stakingLockDuration = newDuration;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CURSOR POSITION (Cursor software theme)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function updateCursorPosition(uint256 x, uint256 y) external {
+        cursorPositions[msg.sender] = CursorPosition({
+            x: x,
+            y: y,
+            timestamp: block.timestamp

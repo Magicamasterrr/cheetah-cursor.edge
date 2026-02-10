@@ -406,3 +406,37 @@ contract CheetahCursor {
         if (hist.length == 0) return 0;
         uint256 sum = 0;
         for (uint256 i = 0; i < hist.length; i++) {
+            sum += hist[i];
+        }
+        return sum / hist.length;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TREASURY
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function depositToTreasury(uint256 amount) external {
+        if (amount == 0) revert ZeroAmount();
+        uint256 balance = _balances[msg.sender];
+        if (balance < amount) revert InsufficientBalance();
+        _transfer(msg.sender, address(this), amount);
+        treasuryBalance += amount;
+        emit TreasuryDeposit(msg.sender, amount);
+    }
+
+    function withdrawFromTreasury(address to, uint256 amount) external {
+        if (!_hasRole[TREASURY_ROLE][msg.sender]) revert Unauthorized();
+        if (to == address(0)) revert ZeroAddress();
+        if (amount == 0) revert ZeroAmount();
+        if (treasuryBalance < amount) revert InsufficientBalance();
+        treasuryBalance -= amount;
+        _transfer(address(this), to, amount);
+        emit TreasuryWithdraw(to, amount, msg.sender);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // GOVERNANCE: PROPOSALS & VOTING
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function createProposal(string calldata description) external returns (uint256 proposalId) {
+        if (_balances[msg.sender] < proposalThreshold) revert InsufficientBalance();

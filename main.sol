@@ -440,3 +440,37 @@ contract CheetahCursor {
 
     function createProposal(string calldata description) external returns (uint256 proposalId) {
         if (_balances[msg.sender] < proposalThreshold) revert InsufficientBalance();
+        proposalId = ++proposalCount;
+        proposals[proposalId] = Proposal({
+            proposer: msg.sender,
+            description: description,
+            forVotes: 0,
+            againstVotes: 0,
+            startTime: block.timestamp,
+            endTime: block.timestamp + votingPeriod,
+            executed: false
+        });
+        emit ProposalCreated(proposalId, msg.sender, description);
+        return proposalId;
+    }
+
+    function castVote(uint256 proposalId, bool support) external {
+        Proposal storage p = proposals[proposalId];
+        if (p.proposer == address(0)) revert ProposalNotFound();
+        if (block.timestamp > p.endTime) revert ProposalExpired();
+        if (hasVoted[proposalId][msg.sender]) revert AlreadyVoted();
+        hasVoted[proposalId][msg.sender] = true;
+        uint256 weight = _balances[msg.sender] + stakes[msg.sender].amount;
+        if (support) {
+            p.forVotes += weight;
+        } else {
+            p.againstVotes += weight;
+        }
+        emit VoteCast(proposalId, msg.sender, support, weight);
+    }
+
+    function executeProposal(uint256 proposalId) external {
+        Proposal storage p = proposals[proposalId];
+        if (p.proposer == address(0)) revert ProposalNotFound();
+        if (p.executed) revert ProposalNotFound();
+        if (block.timestamp <= p.endTime) revert ProposalExpired();

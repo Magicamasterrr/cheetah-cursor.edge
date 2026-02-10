@@ -236,3 +236,37 @@ contract CheetahCursor {
         if (currentAllowance < amount) revert InsufficientAllowance();
         unchecked {
             _allowances[from][msg.sender] = currentAllowance - amount;
+        }
+        _transfer(from, to, amount);
+        return true;
+    }
+
+    function _transfer(address from, address to, uint256 amount) private {
+        if (from == address(0) || to == address(0)) revert ZeroAddress();
+        if (amount == 0) revert ZeroAmount();
+        uint256 fromBalance = _balances[from];
+        if (fromBalance < amount) revert InsufficientBalance();
+        unchecked {
+            _balances[from] = fromBalance - amount;
+            _balances[to] += amount;
+        }
+        emit Transfer(from, to, amount);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // MINTING (restricted)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function mint(address to, uint256 amount) external {
+        if (!_hasRole[MINTER_ROLE][msg.sender]) revert Unauthorized();
+        if (to == address(0)) revert ZeroAddress();
+        if (amount == 0) revert ZeroAmount();
+        if (_totalSupply + amount > maxSupply) revert MaxSupplyExceeded();
+        _totalSupply += amount;
+        _balances[to] += amount;
+        emit Transfer(address(0), to, amount);
+    }
+
+    function burn(uint256 amount) external {
+        if (amount == 0) revert ZeroAmount();
+        uint256 balance = _balances[msg.sender];

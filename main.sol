@@ -372,3 +372,37 @@ contract CheetahCursor {
             x: x,
             y: y,
             timestamp: block.timestamp
+        });
+        emit CursorPositionUpdated(msg.sender, x, y, block.timestamp);
+    }
+
+    function getCursorPosition(address account) external view returns (uint256 x, uint256 y, uint256 timestamp) {
+        CursorPosition storage cp = cursorPositions[account];
+        return (cp.x, cp.y, cp.timestamp);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // VELOCITY (Cheetah = speed)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function recordVelocity(uint256 velocity) external {
+        uint256[] storage hist = _velocityHistory[msg.sender];
+        if (hist.length >= MAX_VELOCITY_HISTORY) {
+            for (uint256 i = 0; i < hist.length - 1; i++) {
+                hist[i] = hist[i + 1];
+            }
+            hist.pop();
+        }
+        hist.push(velocity);
+        emit VelocityRecorded(msg.sender, velocity, block.timestamp);
+    }
+
+    function getVelocityHistory(address account) external view returns (uint256[] memory) {
+        return _velocityHistory[account];
+    }
+
+    function averageVelocity(address account) external view returns (uint256) {
+        uint256[] storage hist = _velocityHistory[account];
+        if (hist.length == 0) return 0;
+        uint256 sum = 0;
+        for (uint256 i = 0; i < hist.length; i++) {

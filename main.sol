@@ -270,3 +270,37 @@ contract CheetahCursor {
     function burn(uint256 amount) external {
         if (amount == 0) revert ZeroAmount();
         uint256 balance = _balances[msg.sender];
+        if (balance < amount) revert InsufficientBalance();
+        unchecked {
+            _balances[msg.sender] = balance - amount;
+            _totalSupply -= amount;
+        }
+        emit Transfer(msg.sender, address(0), amount);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // REWARD MATH (staking)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    function rewardPerToken() public view returns (uint256) {
+        if (totalStaked == 0) return rewardPerTokenStored;
+        uint256 elapsed = block.timestamp - lastRewardUpdateTimestamp;
+        return rewardPerTokenStored + (elapsed * rewardRatePerTokenPerSecond * 1e18) / totalStaked;
+    }
+
+    function earned(address account) public view returns (uint256) {
+        StakeInfo storage s = stakes[account];
+        uint256 rpt = rewardPerToken();
+        uint256 pending = (s.amount * (rpt - s.rewardPerTokenPaid)) / 1e18;
+        return s.rewardsAccrued + pending;
+    }
+
+    function _updateReward(address account) private {
+        rewardPerTokenStored = rewardPerToken();
+        lastRewardUpdateTimestamp = block.timestamp;
+        if (account != address(0)) {
+            StakeInfo storage s = stakes[account];
+            s.rewardsAccrued = earned(account);
+            s.rewardPerTokenPaid = rewardPerTokenStored;
+        }
+    }
